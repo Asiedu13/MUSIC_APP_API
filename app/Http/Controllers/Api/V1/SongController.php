@@ -58,8 +58,9 @@ class SongController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Song $song)
+    public function show($song)
     {
+        $song = Song::find($song);
         $albums = Album::where('is_active', true);
         
         $albums->where('id', $song->album_id);
@@ -83,7 +84,7 @@ class SongController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSongRequest $request, Song $song)
+    public function update(UpdateSongRequest $request, $song)
     {
          $validatedData = Validator::make($request->all(), [
             'title' => 'required',
@@ -99,6 +100,8 @@ class SongController extends Controller
                 'error' => $validatedData->errors(),
             ], 401);
         }
+
+        $song = Song::find($song);
         $song->title = $request->input('title');
         $song->album_id = $request->input('album_id');
         $song->artist_id = $request->input('artist_id');
@@ -118,7 +121,7 @@ class SongController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Song $song)
+    public function destroy($song)
     {
         $foundSong = Song::find($song);
 

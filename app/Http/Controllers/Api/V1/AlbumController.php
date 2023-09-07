@@ -16,19 +16,22 @@ class AlbumController extends Controller
      */
     public function index()
     {
-        $albums = Album::all();
-        $songs = Song::where('is_active', true);
-        $tarrray = [];
+        $albums = Album::with(['songs'])->orderBy('id', 'desc')->paginate(10);
+        // $songs = Song::where('is_active', true);
+        // $tarrray = [];
 
-        foreach($albums as $album) {
-            $songs->where('id', $album->id);
-            $album_songs = $songs->get();
-            $album->songs = $album_songs;
-            array_push($tarrray, $album);
-        }
+        // foreach($albums as $album) {
+        //     $songs->where('id', $album->id);
+        //     $album_songs = $songs->get();
+        //     $album->songs = $album_songs;
+        //     array_push($tarrray, $album);
+        // }
+        // 
         return response()->json(
             [
-                'data' => $tarrray,
+                'status' =>  true,
+                'data' => $albums,
+
             ]
             );
 
@@ -72,15 +75,17 @@ class AlbumController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Album $album)
+    public function show($album)
     {
         // Show album and related songs
+        $album = Album::find($album);
         $songs = Song::where('is_active', true);
         
         $songs->where('album_id', $album->id);
 
         return response()->json(
             [
+                'status' => true,
                 'album' => $album->id,
                 'numberOfSongs' => $album->number_of_songs,
                 'songs' => $songs->get()
@@ -99,7 +104,7 @@ class AlbumController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateAlbumRequest $request, Album $album)
+    public function update(UpdateAlbumRequest $request, $albumId)
     {
         $validatedData = Validator::make($request->all(), [
             'title' => 'required',
@@ -113,23 +118,31 @@ class AlbumController extends Controller
                 'error' => $validatedData->errors(),
             ], 401);
         }
-        $album->title = $request->input('title');
-        $album->artist_id = $request->input('artist_id');
-        $album->number_of_songs = $request->input('number_of_songs');
-        $album->rating = $request->input('rating');
-        $album->update();
+        $album = Album::find($albumId);
+        if (! is_null($album)) {
+            $album->title = $request->input('title');
+            $album->artist_id = $request->input('artist_id');
+            $album->number_of_songs = $request->input('number_of_songs');
+            $album->rating = $request->input('rating');
+            $album->update();
+            
+            return response()->json( [
+                'status' => true,
+                'data' => $album,
+                'msg' => 'Album updated',
+            ], 201);
+        }
 
-        return response()->json( [
-            'status' => 1,
-            'data' => $album,
-            'msg' => 'Album updated',
-        ], 201);
+        return response()->json([
+                'status' => false,
+                'error' => 'Album not found',
+        ], 404);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Album $album)
+    public function destroy($album)
     {
         $foundAlbum = Album::find($album);
 

@@ -4,10 +4,15 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Album;
 use App\Models\Artist;
+
+
+
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreArtistRequest;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\UpdateArtistRequest;
+use Symfony\Component\HttpFoundation\Request;
 
 class ArtistController extends Controller
 {
@@ -16,19 +21,20 @@ class ArtistController extends Controller
      */
     public function index()
     {
-        $artists = Artist::all();
-        $albums = Album::where('is_active', true);
-        $tarrray = [];
+        $artists = Artist::with('albums')->orderBy('created_at', 'desc')->paginate(10);
+        // $albums = Album::where('is_active', true);
+        // $tarrray = [];
 
-        foreach($artists as $artist) {
-            $albums->where('artist_id', $artist->id);
-            $artist_albums = $albums->get();
-            $artist->albums = $artist_albums;
-            array_push($tarrray, $artist);
-        }
+        // foreach($artists as $artist) {
+        //     $albums->where('artist_id', $artist->id);
+        //     $artist_albums = $albums->get();
+        //     $artist->albums = $artist_albums;
+        //     array_push($tarrray, $artist);
+        // }
         return response()->json(
             [
-                'data' => $tarrray,
+                'status' => true,
+                'data' => $artists,
             ]
             );
 
@@ -74,9 +80,9 @@ class ArtistController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Artist $artist)
+    public function show($artistId)
     {
-
+        $artist = Artist::find($artistId);
         return response()->json(
             [
                 'status' => true,
@@ -96,7 +102,7 @@ class ArtistController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateArtistRequest $request, Artist $artist)
+    public function update(UpdateArtistRequest $request, $artist)
     {
          $validatedData = Validator::make($request->all(), [
             'name' => 'required',
@@ -121,7 +127,7 @@ class ArtistController extends Controller
         $artist->update();
 
         return response()->json( [
-            'status' => 1,
+            'status' => true,
             'data' => $artist,
             'msg' => 'Artist updated',
         ], 201);
@@ -144,9 +150,31 @@ class ArtistController extends Controller
 
         $foundArtist->delete();
         return response()->json([
-                'status' => false,
+                'status' => true,
                 'data' => $foundArtist,
             ]);
         
     }
+
+    public function search(Request $request)
+    {
+        $request = $request->all();
+        $search_prop = (array_keys($request))[0];
+        $theArtist = Artist::all()->where($search_prop, '=', $request[$k]);
+        
+        if (! is_null($theArtist)) {
+            
+            return response()->json([
+                'status' => true,
+                'data' => $theArtist
+            ]);
+        }
+        return response()->json(
+            [
+                'status' => false,
+                'error' => 'Artist not found!'
+            ], 404
+            );
+    }
 }
+

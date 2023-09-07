@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\ArtistController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\Api\V1', 'middleware'=> 'auth:sanctum'], function() {
-    Route::apiResource('artists', ArtistController::class);
+    Route::get('/artists/search', [ArtistController::class, 'search']);
+    Route::apiResource('/artists', ArtistController::class);
     Route::apiResource('albums', AlbumController::class);
     Route::apiResource('songs', SongController::class);
 });
@@ -44,15 +46,16 @@ Route::post('/register', function(){
         $user->save();
 
         if (Auth::attempt($credentials)) {
-            // $user = Auth::user();
             $user = User::where('email', $user->email)->first();
 
             $token = $user->createToken('apiToken');
 
-            return [
-                'token' => $token->plainTextToken(),
-                'status' => 'Erm',
-            ];
+            return response()->json(
+                [
+                    'token' => $token->plainTextToken(),
+                    'status' => true, 
+                ], 200
+            );
         }
     };
 });
