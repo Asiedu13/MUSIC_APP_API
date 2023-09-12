@@ -8,11 +8,11 @@ use App\Models\Artist;
 
 
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreArtistRequest;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\UpdateArtistRequest;
-use Symfony\Component\HttpFoundation\Request;
 
 class ArtistController extends Controller
 {
@@ -158,9 +158,16 @@ class ArtistController extends Controller
 
     public function search(Request $request)
     {
-        $request = $request->all();
-        $search_prop = (array_keys($request))[0];
-        $theArtist = Artist::all()->where($search_prop, '=', $request[$k]);
+        // $request = $request->all();
+        // $search_prop = (array_keys($request))[0];
+        // $theArtist = Artist::where($search_prop, 'LIKE', '%'.$request[$search_prop].'%')->get();
+        
+        $searchQuery = $request->input('query');
+        $theArtist = Artist::where('name', 'LIKE', '%'.$searchQuery.'%')
+                    ->orWhere('email', 'LIKE', '%'.$searchQuery.'%')
+                    ->orWhere('record_label', 'LIKE', '%'.$searchQuery.'%')
+                    ->orWhere('stage_name', 'LIKE', '%'.$searchQuery.'%')
+                    ->get();
         
         if (! is_null($theArtist)) {
             

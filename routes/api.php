@@ -40,7 +40,7 @@ Route::post('/register', function(){
     if(!Auth::attempt($credentials)) {
         $user = new App\Models\User();
 
-        $user->name = "Admin";
+        $user->name = "person";
         $user->email = $credentials['email'];
         $user->password = Hash::make($credentials['password']);
         $user->save();
@@ -52,8 +52,8 @@ Route::post('/register', function(){
 
             return response()->json(
                 [
-                    'token' => $token->plainTextToken(),
                     'status' => true, 
+                    'token' => $token->plainTextToken,
                 ], 200
             );
         }

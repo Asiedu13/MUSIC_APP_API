@@ -38,7 +38,7 @@ class SongController extends Controller
             'title' => 'required',
             'genre' => 'required',
             'date_released' => 'required',
-            'ratings' => 'required',
+            'rating' => 'required',
         ]);
 
         if($validatedData->fails()) {
@@ -106,7 +106,7 @@ class SongController extends Controller
         $song->album_id = $request->input('album_id');
         $song->artist_id = $request->input('artist_id');
         $song->genre = $request->input('genre');
-        $song->date_releaseds = $request->input('date_releaseds');
+        $song->date_released = $request->input('date_released');
         $song->rating = $request->input('rating');
         $song->update();
 
@@ -134,7 +134,7 @@ class SongController extends Controller
 
         $foundSong->delete();
         return response()->json([
-                'status' => false,
+                'status' => true,
                 'data' => $foundSong,
             ]);
         
